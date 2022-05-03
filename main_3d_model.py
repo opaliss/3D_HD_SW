@@ -45,7 +45,7 @@ dp = p[1] - p[0]
 
 # theta - (-pi/2, pi/2)
 t = model["vr"].theta_coords
-t = np.linspace(0.1, np.pi - 0.1, len(t))
+t = np.linspace(0.05, np.pi - 0.05, len(t))
 # delta t
 dt = t[1] - t[0]
 
@@ -77,11 +77,11 @@ Pr = np.append(Pr, [Pr[0, :, :]], axis=0)
 PHI, THETA = np.meshgrid(p, t)
 
 U_SOL = np.zeros((5, len(p), len(t), len(new_r)))
-U_SOL[:, :, :, 0] = np.array((vr[:, :, 0],
+U_SOL[:, :, :, 0] = np.array((vr[:, :, 0]*(1 + 0.25*(1-np.exp(-30/50))),
                               rho[:, :, 0],
                               Pr[:, :, 0],
-                              vp[:, :, 0],
-                              vt[:, :, 0]))
+                              vp[:, :, 0]*(1 + 10*(1-np.exp(-30/50))),
+                              vt[:, :, 0]*(1 + 10*(1-np.exp(-30/50)))))
 
 for ii in range(len(new_r) -1):
     if ii % 10 == 0:
