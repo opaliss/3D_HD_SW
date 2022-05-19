@@ -10,6 +10,7 @@ def interpolate_initial_condition(data, p_coord, t_coord, r_coord, p_interp, t_i
     interp_function = RegularGridInterpolator(
         points=(p_coord, t_coord, r_coord),
         values=np.array(data),
+        method="linear",
         bounds_error=False,
         fill_value=None)
 

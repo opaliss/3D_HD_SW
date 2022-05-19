@@ -6,19 +6,33 @@ import time
 from scipy.sparse import diags
 
 
-def ddx_fwd(f, dx, periodic=False):
+def ddx_fwd(f, dx, periodic=True, order=1):
     # return the first derivative of f in x using a first-order forward difference.
-    A = diags([-1, 1], [0, 1], shape=(f.shape[0], f.shape[0])).toarray()
-    if periodic:
-        A[-1, 0] = 1
-    else:
-        A[-1, -1] = 1
-        A[-1, -2] = -1
-    A /= dx
+    if order == 1:
+        A = diags([-1, 1], [0, 1], shape=(f.shape[0], f.shape[0])).toarray()
+        if periodic:
+            A[-1, 0] = 1
+        else:
+            A[-1, -1] = 1
+            A[-1, -2] = -1
+        A /= dx
+    elif order == 2:
+        A = diags([-3, 4, -1], [0, 1, 2], shape=(f.shape[0], f.shape[0])).toarray()
+        if periodic:
+            A[-1, 0] = 4
+            A[-1, 1] = -1
+            A[-2, 0] = -1
+        else:
+            A[-1, -1] = 1
+            A[-1, -2] = -4
+            A[-1, -3] = 3
+            A[-2, -1] = 1
+            A[-2, -2] = -1
+        A /= (2*dx)
     return A @ f
 
 
-def ddx_bwd(f, dx, periodic=False):
+def ddx_bwd(f, dx, periodic=False, order=1):
     # return the first derivative of f in x using a first-order backward difference.
     A = diags([-1, 1], [-1, 0], shape=(f.shape[0], f.shape[0])).toarray()
     if periodic:
