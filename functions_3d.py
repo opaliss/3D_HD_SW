@@ -175,11 +175,33 @@ def pizzo_maccormack(U, dt, dp, dr, THETA, r):
     # gravitational forces vector
     G = g_vector(U=U, THETA=THETA, r=r)
 
-    # predictor step
-    U_pred_2 = U + dr.value * (G + V1 + V2)
+    # runge kutta
+    U_pred_star = U + (dr.value)/2 * (G + V1 + V2)
+
+    # dUdt = np.array([ddx_fwd(U_pred_star[0].T, dt, order=2).T,
+    #                  ddx_fwd(U_pred_star[1].T, dt, order=2).T,
+    #                  ddx_fwd(U_pred_star[2].T, dt, order=2).T,
+    #                  ddx_fwd(U_pred_star[3].T, dt, order=2).T,
+    #                  ddx_fwd(U_pred_star[4].T, dt, order=2).T])
+    #
+    # V1 = FdUdt(U=U_pred_star, dUdt=dUdt, r=r + (dr)/2)
+    #
+    # # derivative with respect to phi
+    # dUdp = np.array([ddx_fwd(U_pred_star[0], dp, periodic=True, order=2),
+    #                  ddx_fwd(U_pred_star[1], dp, periodic=True, order=2),
+    #                  ddx_fwd(U_pred_star[2], dp, periodic=True, order=2),
+    #                  ddx_fwd(U_pred_star[3], dp, periodic=True, order=2),
+    #                  ddx_fwd(U_pred_star[4], dp, periodic=True, order=2)])
+    #
+    # V2 = HdUdp(U=U_pred_star, dUdp=dUdp, r=r + (dr)/2, THETA=THETA)
+    # # gravitational forces vector
+    # G = g_vector(U=U_pred_star, THETA=THETA, r=r + (dr)/2)
+    #
+    # U_pred_2 = U + (dr.value) * (G + V1 + V2)
+
     # # flux limiter
     phi = phi_flux_limiter(q=U)
-    U_sol = U_pred + phi*(U_pred_2 - U_pred)
+    U_sol = U_pred + phi*(U_pred_star - U_pred)
     U_sol = boundary_conditions(U=U_sol)
     return U_sol
 
