@@ -194,7 +194,7 @@ def corrector(U, U_pred, dt, dp, dr, THETA, r):
         ddx_bwd(U_pred[3].T, dt).T,
         ddx_bwd(U_pred[4].T, dt).T])
 
-    V1_pred = FdUdt(U=U_pred, dUdt=dUdt_pred, r=r + dr / 2)
+    V1_pred = FdUdt(U=U_pred, dUdt=dUdt_pred, r=r + dr)
 
     # derivative with respect to phi
     dUdp_pred = np.array([
@@ -204,9 +204,9 @@ def corrector(U, U_pred, dt, dp, dr, THETA, r):
         ddx_bwd(U_pred[3], dp, periodic=True),
         ddx_bwd(U_pred[4], dp, periodic=True)])
 
-    V2_pred = HdUdp(U=U_pred, dUdp=dUdp_pred, r=r + dr / 2, THETA=THETA)
+    V2_pred = HdUdp(U=U_pred, dUdp=dUdp_pred, r=r + dr, THETA=THETA)
     # gravitational forces vector
-    G_pred = g_vector(U=U_pred, THETA=THETA, r=r + dr / 2)
+    G_pred = g_vector(U=U_pred, THETA=THETA, r=r + dr)
     # corrector step
     U_final = 0.5 * (U_pred + U + dr.value * (G_pred + V1_pred + V2_pred))
     U_final = boundary_conditions(U=U_final)
@@ -224,6 +224,13 @@ def pizzo_maccormack(U, dt, dp, dr, THETA, r, reg_coeff=1e-2):
     U_sol = boundary_conditions(U=U_sol)
     return U_sol, phi
 
+
+def maccormack(U, dt, dp, dr, THETA, r):
+    # predictor
+    U_pred = upwind(U=U, dt=dt, dp=dp, dr=dr, THETA=THETA, r=r)
+    # corrector
+    U_final = corrector(U=U, U_pred=U_pred, dt=dt, dp=dp, dr=dr, THETA=THETA, r=r)
+    return U_final
 
 def flux_limiter_upwinds(U, dt, dp, dr, THETA, r):
     # upwind order 1
