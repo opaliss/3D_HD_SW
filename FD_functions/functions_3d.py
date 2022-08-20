@@ -181,7 +181,7 @@ def f_function_shifted(U, dt, dp, THETA, r, m, order=1):
                       m*dUdp[2],
                       m*dUdp[3],
                       m*dUdp[4]])
-    U_final = boundary_conditions(U=G + V1 + V2 + dUdp_m)
+    U_final = boundary_conditions(U=(G + V1 + V2 + dUdp_m))
     return U_final
 
 
