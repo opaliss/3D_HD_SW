@@ -1,13 +1,35 @@
+"""Module includes finite difference operators
+
+
+Authors: Opal Issan
+Version: August 19, 2022
+"""
+
 import numpy as np
-from scipy import stats
-from scipy.interpolate import interp1d
-import scipy
-import time
 from scipy.sparse import diags
 
 
 def ddx_fwd(f, dx, periodic=True, order=1):
-    # return the first derivative of f in x using a first-order forward difference.
+    """ return the first derivative of f(x) in x using a first-order forward difference.
+    --- assuming a uniform mesh discretization in x, i.e. dx = const. ---
+    df/dx = (f_{i+1} - f_{i})/dx (for order=1)
+
+     Parameters
+    ----------
+    f: array
+        a 2d or 1d array
+    dx: float
+        the spatial discretization of x, i.e. dx = x_{i+1} - x_{i}
+    periodic: bool
+        periodic boundary conditions (True/False).
+    order: float
+        order of accuracy.
+
+    Returns
+    -------
+    array
+        df/dx
+    """
     if order == 1:
         A = diags([-1, 1], [0, 1], shape=(f.shape[0], f.shape[0])).toarray()
         if periodic:
@@ -43,7 +65,27 @@ def ddx_fwd(f, dx, periodic=True, order=1):
 
 
 def ddx_bwd(f, dx, periodic=False, order=1):
-    # return the first derivative of f in x using a first-order backward difference.
+    """
+    return the first derivative of f(x) in x using a first-order backwards difference.
+    --- assuming a uniform mesh discretization in x, i.e. dx = const. ---
+    df/dx = (f_{i} - f_{i-1})/dx (for order=1)
+
+     Parameters
+    ----------
+    f: array
+        a 2d or 1d array
+    dx: float
+        the spatial discretization of x, i.e. dx = x_{i+1} - x_{i}
+    periodic: bool
+        periodic boundary conditions (True/False).
+    order: float
+        order of accuracy.
+
+    Returns
+    -------
+    array
+        df/dx
+    """
     A = diags([-1, 1], [-1, 0], shape=(f.shape[0], f.shape[0])).toarray()
     if periodic:
         A[0, -1] = -1
@@ -54,8 +96,27 @@ def ddx_bwd(f, dx, periodic=False, order=1):
     A /= dx
     return A @ f
 
+
 def ddx_central(f, dx, periodic=False):
-    # return the first derivative of f in x using a first-order central difference.
+    """
+    return the first derivative of f(x) in x using a second-order accurate central difference.
+    --- assuming a uniform mesh discretization in x, i.e. dx = const. ---
+    df/dx = (f_{i+1} - f_{i-1})/(2*dx)
+
+     Parameters
+    ----------
+    f: array
+        a 2d or 1d array
+    dx: float
+        the spatial discretization of x, i.e. dx = x_{i+1} - x_{i}
+    periodic: bool
+        periodic boundary conditions (True/False).
+
+    Returns
+    -------
+    array
+        df/dx
+    """
     A = diags([-1, 1], [-1, 1], shape=(f.shape[0], f.shape[0])).toarray()
     if periodic:
         A[0, -1] = -1

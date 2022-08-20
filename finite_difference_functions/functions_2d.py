@@ -1,3 +1,10 @@
+"""
+Module that includes Pizzo 2D hydrodynamic model of the solar wind functions
+
+
+Authors: Opal Issan
+Version: August 19, 2022
+"""
 from tools.derivatives import ddx_fwd
 import numpy as np
 from astropy.constants import G
