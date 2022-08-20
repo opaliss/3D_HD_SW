@@ -1,6 +1,6 @@
 from tools.MASweb import get_mas_path
 from psipy.model import MASOutput
-from functions_2d import pizzo_forward_euler_2d
+from finite_difference_functions.functions_2d import pizzo_forward_euler_2d
 import numpy as np
 from astropy.constants import m_p
 import matplotlib.pyplot as plt

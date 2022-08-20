@@ -14,7 +14,7 @@ import astropy.units as u
 import matplotlib.pyplot as plt
 
 
-def cs_variable(P, rho, gamma=5 / 3):
+def cs_variable(P, rho, gamma=5/3):
     """cs = gamma * p / rho
 
     Parameters
@@ -78,7 +78,7 @@ def c_vector(U, THETA, r, Minf=const.M_sun.to(u.kg).value, G=G.to(u.km ** 3 / (u
     Parameters
     ----------
     U: tensor
-        contains primitive variables [vr, rho, Pr, vp, vt]
+        contains primitive variables [velocity radial, density, pressure, velocity longitudinal, velocity latitude]
     THETA: 2d array
         Theta mesh grid
     r: float
@@ -108,20 +108,36 @@ def c_vector(U, THETA, r, Minf=const.M_sun.to(u.kg).value, G=G.to(u.km ** 3 / (u
 
 
 def g_vector(U, THETA, r):
+    """gravitational term
+
+    Parameters
+    ----------
+    U: tensor
+        contains primitive variables [velocity radial, density, pressure, velocity longitudinal, velocity latitude]
+    THETA: 2d array
+        Theta mesh grid
+    r: float
+        radial distance from the Sun.
+
+    Returns
+    -------
+    tensor
+        a tensor with G
+    """
     # primitive variables
     vr, rho, Pr, vp, vt = U
     # cs^2
     cs = cs_variable(P=Pr, rho=rho)
     # 1/alpha^2
-    alpha_coeff = 1 / alpha_square_variable(ur=vr, cs=cs)
+    alpha = 1 / alpha_square_variable(ur=vr, cs=cs)
 
     C1, C2, C3, C4, C5 = c_vector(U=U, THETA=THETA, r=r)
 
-    G1 = alpha_coeff * (vr * C1 - cs * C2 / rho)
-    G2 = alpha_coeff * (vr * C2 - rho * C1)
-    G3 = alpha_coeff * (cs * vr * C2 - cs * rho * C1)
-    G4 = alpha_coeff * (C4 / vr)
-    G5 = alpha_coeff * (C5 / vr)
+    G1 = alpha * (vr * C1 - cs * C2 / rho)
+    G2 = alpha * (vr * C2 - rho * C1)
+    G3 = alpha * (cs * vr * C2 - cs * rho * C1)
+    G4 = alpha * (C4 / vr)
+    G5 = alpha * (C5 / vr)
     return np.array([G1, G2, G3, G4, G5])
 
 
