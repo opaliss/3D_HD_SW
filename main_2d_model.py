@@ -1,6 +1,6 @@
 from tools.MASweb import get_mas_path
 from psipy.model import MASOutput
-from finite_difference_functions.functions_2d import pizzo_forward_euler_2d
+from finite_difference_functions.fd_2d import maccormack_pizzo_2d, euler_pizzo_2d
 import numpy as np
 from astropy.constants import m_p
 import matplotlib.pyplot as plt
@@ -33,7 +33,7 @@ dp = p[1] - p[0]
 r = (model["vr"].r_coords * u.solRad).to(u.km)
 new_r = np.linspace(r[10], r[-1], int(400))
 # change in r
-dr = new_r[1] - new_r[0]
+dr = (new_r[1] - new_r[0]).value
 
 # since the last phi index is less than 2*pi, then we will append 2*pi to phi scale.
 p = np.append(p, 2 * np.pi)
@@ -58,10 +58,7 @@ U_SOL[:, :, 0] = np.array((vr[:, 55, 0],
                            vp[:, 55, 0]))
 
 for ii in range(len(new_r) - 1):
-    U_SOL[:, :, ii + 1] = pizzo_forward_euler_2d(U=U_SOL[:, :, ii],
-                                                 dr=dr,
-                                                 dp=dp,
-                                                 r=new_r[ii])
+    U_SOL[:, :, ii + 1] = euler_pizzo_2d(U=U_SOL[:, :, ii], dr=dr, dp=dp, r=new_r[ii], theta=0)
     if ii % 25 == 0:
         print(ii)
         print((new_r[ii]).to(u.AU))
