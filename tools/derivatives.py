@@ -130,3 +130,48 @@ def ddx_central(f, dx, periodic=False):
         A[-1, -3] = 1
     A /= (2 * dx)
     return A @ f
+
+
+def d2dx2_central(f, dx, periodic=False):
+    """
+    return the second derivative of f(x) in x using a second-order accurate central difference.
+    --- assuming a uniform mesh discretization in x, i.e. dx = const. ---
+    d2f/dx2 = (f_{i+1} - 2f_{i} + f_{i-1})/(dx^2)
+
+    on the boundaries (for non-periodic):
+    (forward)
+    d2f/dx2 = 2f_{i} - 5 f_{i+1} + 4 f_{i+2} - f_{i+3}/(dx^3)
+    (backward)
+    d2f/dx2 = 2f_{i} - 5f_{i-1} + 4 f_{i-2} -f_{i-3}/(dx^3)
+
+     Parameters
+    ----------
+    f: array
+        a 2d or 1d array
+    dx: float
+        the spatial discretization of x, i.e. dx = x_{i+1} - x_{i}
+    periodic: bool
+        periodic boundary conditions (True/False).
+
+    Returns
+    -------
+    array
+        df/dx
+    """
+    A = diags([-1, 0, 1], [1, -2,  1], shape=(f.shape[0], f.shape[0])).toarray()
+    if periodic:
+        A[0, -1] = 1
+        A[-1, 0] = 1
+    else:
+        # forward
+        A[0, 0] = 2/dx
+        A[0, 1] = -5/dx
+        A[0, 2] = 4/dx
+        A[0, 3] = -1/dx
+        # backward
+        A[-1, -1] = 2/dx
+        A[-1, -2] = -5/dx
+        A[-1, -3] = 4/dx
+        A[-1, -4] = -1/dx
+    A /= (dx**2)
+    return A @ f
