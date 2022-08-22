@@ -46,7 +46,7 @@ def maccormack_pizzo_2d(U, dp, dr, r, theta):
     # H operator times dU/dp
     HdUdp_corr = HdUdp(U=U_pred, dUdp=dUdp_corr, r=r, theta=theta)
     # gravitational forces vector
-    G_corr = G_vector(U=U_pred, r=r + dr / 2)
+    G_corr = G_vector(U=U_pred, r=r + dr)
     # return corrector output
     return 0.5 * (U + U_pred + dr * (HdUdp_corr + G_corr))
 
@@ -98,9 +98,9 @@ def modified_maccormack_pizzo_2d(U, dp, dr, r, theta, epsilon):
                           ddx_bwd(f=U_pred[2], dx=dp, periodic=True),
                           ddx_bwd(f=U_pred[3], dx=dp, periodic=True)])
     # H operator times dU/dp
-    HdUdp_corr = HdUdp(U=U_pred, dUdp=dUdp_corr, r=r + dr / 2, theta=theta)
+    HdUdp_corr = HdUdp(U=U_pred, dUdp=dUdp_corr, r=r + dr, theta=theta)
     # gravitational forces vector
-    G_corr = G_vector(U=U_pred, r=r + dr / 2)
+    G_corr = G_vector(U=U_pred, r=r + dr)
     # viscosity
     vis_corr = epsilon * np.array([d2dx2_central(U_pred[0], 0, periodic=True),
                          d2dx2_central(U_pred[1], 0, periodic=True),

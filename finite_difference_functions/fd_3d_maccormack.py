@@ -45,7 +45,7 @@ def maccormack_pizzo_3d(U, dt, dp, dr, THETA, r):
         ddx_bwd(U_pred[3].T, dt).T,
         ddx_bwd(U_pred[4].T, dt).T])
 
-    V1_pred = FdUdt(U=U_pred, dUdt=dUdt_pred, r=r + dr / 2)
+    V1_pred = FdUdt(U=U_pred, dUdt=dUdt_pred, r=r + dr)
 
     # derivative with respect to phi
     dUdp_pred = np.array([
@@ -55,9 +55,9 @@ def maccormack_pizzo_3d(U, dt, dp, dr, THETA, r):
         ddx_bwd(U_pred[3], dp, periodic=True),
         ddx_bwd(U_pred[4], dp, periodic=True)])
 
-    V2_pred = HdUdp(U=U_pred, dUdp=dUdp_pred, r=r + dr / 2, THETA=THETA)
+    V2_pred = HdUdp(U=U_pred, dUdp=dUdp_pred, r=r + dr, THETA=THETA)
     # gravitational forces vector
-    G_pred = g_vector(U=U_pred, THETA=THETA, r=r + dr / 2)
+    G_pred = g_vector(U=U_pred, THETA=THETA, r=r + dr)
     # corrector step
     U_final = 0.5 * (U_pred + U + dr * (G_pred + V1_pred + V2_pred))
     return boundary_conditions(U=U_final)

@@ -53,7 +53,7 @@ def cg_variable(vt, vp, r, Ms=const.M_sun.to(u.kg).value, G=G.to(u.km ** 3 / (u.
     2d array
         a 2D array of cg variable
     """
-    return (1/r.value) * (vt**2 + vp**2 - G*Ms/r.value)
+    return (1/r) * (vt**2 + vp**2 - G*Ms/r)
 
 
 def alpha_square_variable(ur, cs):
@@ -91,7 +91,7 @@ def u_velocity(up, r, THETA, omega_rot=(2 * np.pi / (25.38 * 86400))):
     2d array
         a 2D array of u variable
     """
-    return up - omega_rot * r.value * np.sin(THETA)
+    return up - omega_rot * r * np.sin(THETA)
 
 
 def c_vector(U, THETA, r):
@@ -118,9 +118,9 @@ def c_vector(U, THETA, r):
     cot = np.cos(THETA) / np.sin(THETA)
 
     # c- components
-    C1 = (1 / r.value) * (-2 * rho * vr - rho * vt * cot)
-    C2 = (1 / r.value) * (-vp * vr - vp * vt * cot)
-    C3 = (1 / r.value) * ((vp ** 2) * cot - vr * vt)
+    C1 = (1 / r) * (-2 * rho * vr - rho * vt * cot)
+    C2 = (1 / r) * (-vp * vr - vp * vt * cot)
+    C3 = (1 / r) * ((vp ** 2) * cot - vr * vt)
     return np.array([C1, C2, C3])
 
 
@@ -184,7 +184,7 @@ def FdUdt(U, dUdt, r):
     # alpha
     alpha = alpha_square_variable(ur=vr, cs=cs)
     # coefficient of F matrix
-    coeff = -1 / (alpha * r.value)
+    coeff = -1 / (alpha * r)
     # F matrix times dUdt components
     F1 = coeff * (vt * vr * dUdt[0] - (vt / rho) * dUdt[2] - cs * dUdt[4])
     F2 = coeff * (-rho * vt * dUdt[0] + alpha * (vt / vr) * dUdt[1] + (vt / vr) * dUdt[2] + rho * vr * dUdt[4])
@@ -221,7 +221,7 @@ def HdUdp(U, dUdp, r, THETA):
     # alpha
     alpha = alpha_square_variable(ur=vr, cs=cs)
     # coefficient of the H matrix
-    coeff = -1 / (alpha * r.value * np.sin(THETA))
+    coeff = -1 / (alpha * r * np.sin(THETA))
     # new velocity in the phi direction
     u = u_velocity(up=vp, r=r, THETA=THETA)
     # H * dUdp components
