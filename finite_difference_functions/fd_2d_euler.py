@@ -1,5 +1,5 @@
 """
-Module that includes finite difference (1st/2nd) order schemes to
+Module that includes finite difference (1st) order schemes to
 propagate Pizzo 2D hydrodynamic model of the solar wind functions
 
 Authors: Opal Issan
