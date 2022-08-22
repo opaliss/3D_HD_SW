@@ -1,5 +1,8 @@
-"""
+"""Module that uses the (2D) equatorial slice MAS coronal solutions
+for the primitive variables at 30Rs and propagates forward to 1.1AU.
 
+Authors: Opal Issan
+Version: August 22, 2022
 """
 
 from tools.MASweb import get_mas_path
