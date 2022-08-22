@@ -5,7 +5,6 @@ Module that includes Pizzo 2D hydrodynamic model of the solar wind functions
 Authors: Opal Issan
 Version: August 19, 2022
 """
-from tools.derivatives import ddx_fwd
 import numpy as np
 from astropy.constants import G
 from astropy import constants as const
@@ -32,7 +31,7 @@ def cg_variable(vp, r, Ms=const.M_sun.to(u.kg).value, G=G.to(u.km ** 3 / (u.kg *
     1d array
         a 1D array of cg variable
     """
-    return (1 / r.value) * (vp ** 2 - G * Ms / r.value)
+    return (1 / r) * (vp ** 2 - G * Ms / r)
 
 
 def u_velocity(vp, r, theta, omega_rot=((2 * np.pi) / (25.38 * 86400) * (1 / u.s)).value):
@@ -54,10 +53,7 @@ def u_velocity(vp, r, theta, omega_rot=((2 * np.pi) / (25.38 * 86400) * (1 / u.s
     1d array
         a 1D array of u variable
     """
-    if np.sin(theta) != 0:
-        return vp - omega_rot * r.value * np.sin(theta)
-    else:
-        return vp - omega_rot * r.value
+    return vp - omega_rot * r * np.sin(theta)
 
 
 def c_vector(U, r):
@@ -78,20 +74,18 @@ def c_vector(U, r):
     # primitive variables
     vr, rho, pressure, vp = U
     # c-vector elements
-    C1 = (1 / r.value) * (-2 * rho * vr)
-    C2 = (1 / r.value) * (-vp * vr)
+    C1 = (1 / r) * (-2 * rho * vr)
+    C2 = (1 / r) * (-vp * vr)
     return np.array([C1, C2])
 
 
-def G_vector(U, r, theta):
+def G_vector(U, r):
     """gravitational term
 
     Parameters
     ----------
     U: tensor
         contains primitive variables [velocity radial, density, pressure, velocity longitudinal, velocity latitude]
-    theta: float
-        theta slice (radians).
     r: float
         radial distance from the Sun.
 
@@ -158,4 +152,3 @@ def HdUdp(dUdp, U, r, theta):
     H3 = coeff * (-cs * rho * u * dUdp[0] + u * vr * dUdp[2] + cs * rho * vr * dUdp[3])
     H4 = coeff * (alpha / (rho * vr) * dUdp[2] + alpha * (u / vr) * dUdp[3])
     return np.array([H1, H2, H3, H4])
-

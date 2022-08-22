@@ -7,10 +7,9 @@ Version: August 21, 2022
 """
 
 import numpy as np
-from tools.derivatives import ddx_fwd, ddx_bwd, d2dx2_central
+from tools.derivatives import ddx_fwd, ddx_bwd
 from operator_functions.functions_2d import HdUdp, G_vector
 import matplotlib.pyplot as plt
-import astropy.units as u
 
 
 def forward_euler_pizzo_2d(U, dp, dr, r, theta):
@@ -42,7 +41,7 @@ def forward_euler_pizzo_2d(U, dp, dr, r, theta):
     # H operator times dU/dp
     H = HdUdp(U=U, dUdp=dUdp, r=r, theta=theta)
     # gravitational forces vector
-    G = G_vector(U=U, r=r, theta=theta)
+    G = G_vector(U=U, r=r)
     return U + dr * (G + H)
 
 
@@ -75,5 +74,5 @@ def backward_euler_pizzo_2d(U, dp, dr, r, theta):
     # H operator times dU/dp
     H = HdUdp(U=U, dUdp=dUdp, r=r, theta=theta)
     # gravitational forces vector
-    G = G_vector(U=U, r=r, theta=theta)
+    G = G_vector(U=U, r=r)
     return U + dr * (G + H)
