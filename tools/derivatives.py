@@ -37,30 +37,29 @@ def ddx_fwd(f, dx, periodic=True, order=1):
         else:
             A[-1, -1] = 1
             A[-1, -2] = -1
-        A /= dx
     elif order == 2:
-        A = diags([-3/2, 2, -1/2], [0, 1, 2], shape=(f.shape[0], f.shape[0])).toarray()
+        A = diags([-3 / 2, 2, -1 / 2], [0, 1, 2], shape=(f.shape[0], f.shape[0])).toarray()
         if periodic:
             A[-1, 0] = 2
-            A[-1, 1] = -1/2
-            A[-2, 0] = -1/2
+            A[-1, 1] = -1 / 2
+            A[-2, 0] = -1 / 2
         else:
-            A[-1, -1] = 1/2
+            A[-1, -1] = 1 / 2
             A[-1, -2] = -2
-            A[-1, -3] = 3/2
-            A[-2, -1] = 1/2
-            A[-2, -2] = -1/2
+            A[-1, -3] = 3 / 2
+            A[-2, -1] = 1 / 2
+            A[-2, -2] = -1 / 2
     elif order == 3:
-        A = diags([-11/6, 3, -3/2, 1/3], [0, 1, 2, 3], shape=(f.shape[0], f.shape[0])).toarray()
+        A = diags([-11 / 6, 3, -3 / 2, 1 / 3], [0, 1, 2, 3], shape=(f.shape[0], f.shape[0])).toarray()
         if periodic:
             A[-1, 0] = 3
-            A[-1, 1] = -3/2
-            A[-1, 2] = 1/3
-            A[-2, 0] = -3/2
-            A[-2, 1] = 1/3
+            A[-1, 1] = -3 / 2
+            A[-1, 2] = 1 / 3
+            A[-2, 0] = -3 / 2
+            A[-2, 1] = 1 / 3
         else:
             return ArithmeticError
-        A /= (dx)
+    A /= dx
     return A @ f
 
 
@@ -89,7 +88,6 @@ def ddx_bwd(f, dx, periodic=False, order=1):
     A = diags([-1, 1], [-1, 0], shape=(f.shape[0], f.shape[0])).toarray()
     if periodic:
         A[0, -1] = -1
-        A /= dx
     else:
         A[0, 0] = -1
         A[0, 1] = 1
@@ -132,7 +130,7 @@ def ddx_central(f, dx, periodic=False):
     return A @ f
 
 
-def d2dx2_central(f, dx, periodic=False):
+def d2dx2_central(f, dx=0, periodic=False):
     """
     return the second derivative of f(x) in x using a second-order accurate central difference.
     --- assuming a uniform mesh discretization in x, i.e. dx = const. ---
@@ -158,20 +156,21 @@ def d2dx2_central(f, dx, periodic=False):
     array
         df/dx
     """
-    A = diags([-1, 0, 1], [1, -2,  1], shape=(f.shape[0], f.shape[0])).toarray()
+    A = diags([1, -2, 1], [-1, 0, 1], shape=(f.shape[0], f.shape[0])).toarray()
     if periodic:
         A[0, -1] = 1
         A[-1, 0] = 1
-    else:
+    elif dx != 0:
         # forward
-        A[0, 0] = 2/dx
-        A[0, 1] = -5/dx
-        A[0, 2] = 4/dx
-        A[0, 3] = -1/dx
+        A[0, 0] = 2 / dx
+        A[0, 1] = -5 / dx
+        A[0, 2] = 4 / dx
+        A[0, 3] = -1 / dx
         # backward
-        A[-1, -1] = 2/dx
-        A[-1, -2] = -5/dx
-        A[-1, -3] = 4/dx
-        A[-1, -4] = -1/dx
-    A /= (dx**2)
+        A[-1, -1] = 2 / dx
+        A[-1, -2] = -5 / dx
+        A[-1, -3] = 4 / dx
+        A[-1, -4] = -1 / dx
+    if dx != 0:
+        A /= (dx ** 2)
     return A @ f

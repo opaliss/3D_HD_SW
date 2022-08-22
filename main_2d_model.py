@@ -1,6 +1,7 @@
 from tools.MASweb import get_mas_path
 from psipy.model import MASOutput
-from finite_difference_functions.fd_2d import maccormack_pizzo_2d, euler_pizzo_2d
+from finite_difference_functions.fd_2d_euler import forward_euler_pizzo_2d
+from finite_difference_functions.fd_2d_maccormack import maccormack_pizzo_2d, modified_maccormack_pizzo_2d
 import numpy as np
 from astropy.constants import m_p
 import matplotlib.pyplot as plt
@@ -31,7 +32,7 @@ dp = p[1] - p[0]
 
 # 30 solar radii to approximately 1 AU, 1 solar radii = 695,700 km
 r = (model["vr"].r_coords * u.solRad).to(u.km)
-new_r = np.linspace(r[10], r[-1], int(400))
+new_r = np.linspace(r[0], r[-1], int(1000))
 # change in r
 dr = (new_r[1] - new_r[0]).value
 
@@ -51,33 +52,40 @@ Pr = np.array(model["p"].data)
 Pr = ((Pr * (u.dyne / u.cm ** 2)).to(u.kg / (u.s ** 2 * u.km)))  # convert to mks (km)
 Pr = np.append(Pr, [Pr[0, :, :]], axis=0)
 
-U_SOL = np.zeros((4, len(p), len(new_r)))
-U_SOL[:, :, 0] = np.array((vr[:, 55, 0],
-                           rho[:, 55, 0],
-                           Pr[:, 55, 0],
-                           vp[:, 55, 0]))
+U_SOL_MM, U_SOL_M, U_SOL_E = np.zeros((4, len(p), len(new_r))), np.zeros((4, len(p), len(new_r))), np.zeros((4, len(p), len(new_r)))
+U_SOL_MM[:, :, 0] = U_SOL_M[:, :, 0] = U_SOL_E[:, :, 0] = np.array((vr[:, 55, 0],  rho[:, 55, 0], Pr[:, 55, 0], 0*vp[:, 55, 0]))
 
-for ii in range(len(new_r) - 1):
-    U_SOL[:, :, ii + 1] = euler_pizzo_2d(U=U_SOL[:, :, ii], dr=dr, dp=dp, r=new_r[ii], theta=0)
-    if ii % 25 == 0:
-        print(ii)
-        print((new_r[ii]).to(u.AU))
+for ii in range(len(new_r)-1):
+    U_SOL_MM[:, :, ii + 1] = modified_maccormack_pizzo_2d(U=U_SOL_MM[:, :, ii], dr=dr, dp=dp, r=new_r[ii], theta=0,
+                                                          epsilon=0.1)
+    #U_SOL_M[:, :, ii + 1] = maccormack_pizzo_2d(U=U_SOL_M[:, :, ii], dr=dr, dp=dp, r=new_r[ii], theta=0)
+    U_SOL_E[:, :, ii + 1] = forward_euler_pizzo_2d(U=U_SOL_E[:, :, ii], dr=dr, dp=dp, r=new_r[ii], theta=0)
+
+    if ii % 50== 0:
         fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(5, 10))
-        pos = ax[0].plot(180 / np.pi * p, U_SOL[0, :, ii + 1])
+        ax[0].plot(180 / np.pi * p, U_SOL_MM[0, :, ii + 1], c="r", label=r"MM, $\epsilon=0.5$")
+
+        ax[0].plot(180 / np.pi * p, U_SOL_M[0, :, ii + 1], c="b", label="M")
+        ax[0].plot(180 / np.pi * p, U_SOL_E[0, :, ii + 1], c="g", label="E")
         ax[0].set_ylabel(r'$\frac{km}{s}$')
+        ax[0].legend()
         ax[0].set_title(r"$v_{r}$")
 
-        pos = ax[1].plot(180 / np.pi * p,
-                         ((U_SOL[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3))
+        ax[1].plot(180 / np.pi * p, ((U_SOL_MM[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="r")
+        ax[1].plot(180 / np.pi * p, ((U_SOL_M[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="b")
+        ax[1].plot(180 / np.pi * p, ((U_SOL_E[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="g")
         ax[1].set_ylabel(r'$\frac{1}{cm^3}$')
         ax[1].set_title(r"$n_{p}$")
 
-        pos = ax[2].plot(180 / np.pi * p,
-                         (U_SOL[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)))
+        pos = ax[2].plot(180 / np.pi * p, (U_SOL_MM[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="r")
+        pos = ax[2].plot(180 / np.pi * p, (U_SOL_M[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="b")
+        pos = ax[2].plot(180 / np.pi * p, (U_SOL_E[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="g")
         ax[2].set_ylabel(r'$\frac{dyne}{cm^2}$')
         ax[2].set_title(r"$P$")
 
-        pos = ax[3].plot(180 / np.pi * p, U_SOL[3, :, ii + 1])
+        pos = ax[3].plot(180 / np.pi * p, U_SOL_MM[3, :, ii + 1], c="r")
+        pos = ax[3].plot(180 / np.pi * p, U_SOL_M[3, :, ii + 1], c="b")
+        pos = ax[3].plot(180 / np.pi * p, U_SOL_E[3, :, ii + 1], c="g")
         ax[3].set_ylabel(r'km/s')
         ax[3].set_title(r"$v_{\phi}$")
         ax[3].set_xticks([0, 90, 180, 270, 360])
