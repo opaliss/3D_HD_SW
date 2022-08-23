@@ -7,7 +7,7 @@ Version: August 21, 2022
 """
 
 import numpy as np
-from tools.derivatives import ddx_fwd, ddx_bwd
+from tools.derivatives import ddx_fwd, ddx_bwd, d2dx2_central
 from operator_functions.functions_2d import HdUdp, G_vector
 import matplotlib.pyplot as plt
 
@@ -75,4 +75,6 @@ def backward_euler_pizzo_2d(U, dp, dr, r, theta):
     H = HdUdp(U=U, dUdp=dUdp, r=r, theta=theta)
     # gravitational forces vector
     G = G_vector(U=U, r=r)
-    return U + dr * (G + H)
+    return U - dr * (G + H)
+
+
