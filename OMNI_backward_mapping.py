@@ -9,6 +9,7 @@ import astropy.units as u
 from sunpy.coordinates.sun import carrington_rotation_time
 from heliopy.data import omni
 from finite_difference_functions.fd_2d_euler import backward_euler_pizzo_2d
+from operator_functions.operator_eigenvalues import max_dr_2d
 import matplotlib
 plt.rcParams['savefig.facecolor'] = 'white'
 font = {'family': 'serif',
@@ -45,16 +46,15 @@ N_interp = np.interp(p_interp, earth_coords.lon[:-1].value, omni_data.quantity('
 T_interp = np.interp(p_interp, earth_coords.lon[:-1].value, omni_data.quantity('T'), period=360)
 
 #convolve data (smoothing)
-kernel_size = 3
+kernel_size =5
 kernel = np.ones(kernel_size) / kernel_size
 V_convolved = scipy.ndimage.convolve(V_interp, kernel, mode='wrap')
 P_convolved = scipy.ndimage.convolve(P_interp, kernel, mode='wrap')
 N_convolved = scipy.ndimage.convolve(N_interp, kernel, mode='wrap')
 T_convolved = scipy.ndimage.convolve(T_interp, kernel, mode='wrap')
 
-
+# plot initial condition
 fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(10, 18))
-
 
 ax[0].scatter(earth_coords.lon[:-1], omni_data.quantity('V'), s=10, color="g", label="data")
 ax[0].plot(p_interp, V_interp, color="g", label="linear-interp")
@@ -68,7 +68,6 @@ ax[1].plot(p_interp, P_convolved, color="k", ls="--")
 ax[2].scatter(earth_coords.lon[:-1], omni_data.quantity('N'),s=2, color="r")
 ax[2].plot(p_interp, N_interp, color="r")
 ax[2].plot(p_interp, N_convolved, color="k", ls="--")
-
 
 ax[3].scatter(earth_coords.lon[:-1], omni_data.quantity('T'),s=2, color="orange")
 ax[3].plot(p_interp, T_interp, color="orange")
@@ -89,13 +88,13 @@ plt.show()
 # convert units
 N_convolved_ = (N_convolved * m_p/u.cm**3).to(u.kg/(u.km**3))
 #P_convolved_ = (P_convolved * u.nPa).to(u.kg/((u.s**2) * u.km))
-P_convolved_ = ((2 * N_convolved_ * k_B * T_convolved * u.K) / m_p).to(u.kg/((u.s**2) * u.km))
+P_convolved_ = 2 * ((N_convolved_ * k_B * T_convolved * u.K) / m_p).to(u.kg/((u.s**2) * u.km))
 #P_convolved_ = scipy.ndimage.convolve(P_convolved_, kernel, mode='wrap')
 
 r_0 = np.mean(earth_coords.radius[:-1].to(u.km)).value
-r_f = ((50*u.solRad).to(u.km)).value
+r_f = ((30*u.solRad).to(u.km)).value
 
-r_vec = np.linspace(r_0, r_f, int(1e4))
+r_vec = np.linspace(r_0, r_f, int(1e3))
 dr = r_vec[1] - r_vec[0]
 
 theta_avg = np.mean(earth_coords.lat).to(u.rad).value + np.pi/2
@@ -112,15 +111,21 @@ U_SOL[:, :, 0] = np.array([
 for ii in range(len(r_vec) - 1):
     print((r_vec[ii+1]*u.km).to(u.AU).value)
 
+    # check CFL condition
+    if dr > max_dr_2d(U=U_SOL[:, :, ii], r=r_vec[ii],
+                      dp=(p_interp[1] - p_interp[0])*(np.pi/180),
+                      theta=theta_avg):
+        raise ArithmeticError
+
     U_SOL[:, :, ii + 1] = backward_euler_pizzo_2d(U=U_SOL[:, :, ii],
                                                   dr=np.abs(dr),
                                                   dp=(p_interp[1] - p_interp[0])*(np.pi/180),
                                                   r=r_vec[ii],
                                                   theta=theta_avg)
-   # U_SOL[-1, :, ii+1] = 0 * p_interp
+    #U_SOL[-1, :, ii+1] = 0 * p_interp
 
-    # if (r_vec[ii]*u.km).to(u.AU).value < 0.178:
-    #     print("debug")
+    if (r_vec[ii]*u.km).to(u.AU).value < 0.3:
+        print("debug")
     #
     # if ii % 15 == 0:
     #     fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(5, 10))
@@ -174,6 +179,7 @@ ax[3].legend(loc=(1.05, .05), fontsize=13)
 ax[0].spines["right"].set_visible(False)
 ax[0].spines["top"].set_visible(False)
 ax[2].set_yscale("log")
+ax[1].set_yscale("log")
 _ = ax[0].tick_params(axis='both', which='major')
 plt.tight_layout()
 plt.show()
