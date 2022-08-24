@@ -21,6 +21,7 @@ from finite_difference_functions.fd_2d_euler import backward_euler_pizzo_2d, for
 from operator_functions.operator_eigenvalues import max_dr_2d
 import matplotlib
 from tools.interpolate import interpolate_ace_data
+import time
 
 plt.rcParams['savefig.facecolor'] = 'white'
 font = {'family': 'serif',
@@ -128,6 +129,9 @@ theta_avg = np.mean(ACE_latitude * u.deg).to(u.rad).value + np.pi / 2
 r_vec = np.zeros(int(1e4))
 r_vec[0] = np.min(ACE_r)
 
+# time code
+start_time = time.time()
+
 for ii in range(len(r_vec) - 1):
     # CFL condition for adaptive radial stepping
     dr = 0.9 * max_dr_2d(U=U_SOL[:, :, ii],
@@ -178,6 +182,10 @@ for ii in range(len(r_vec) - 1):
     #     plt.tight_layout()
     #     # plt.show()
     #     plt.savefig("figs/ACE_CR2240/fig_" + str(ii) + ".png", dpi=300)
+
+# end time
+end_time = time.time()
+print(end_time - start_time)
 
 # truncate adaptive stepping
 U_SOL = U_SOL[:, :, :ii]
