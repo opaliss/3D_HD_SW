@@ -60,10 +60,11 @@ Pr = ((Pr * (u.dyne / u.cm ** 2)).to(u.kg / (u.s ** 2 * u.km)))  # convert to mk
 Pr = np.append(Pr, [Pr[0, :, :]], axis=0)
 
 U_SOL_MM, U_SOL_M, U_SOL_E = np.zeros((4, len(p), len(new_r))), np.zeros((4, len(p), len(new_r))), np.zeros((4, len(p), len(new_r)))
-U_SOL_MM[:, :, 0] = U_SOL_M[:, :, 0] = U_SOL_E[:, :, 0] = np.array((vr[:, 55, 0],  rho[:, 55, 0], Pr[:, 55, 0], 0*vp[:, 55, 0]))
+U_SOL_MM[:, :, 0] = U_SOL_M[:, :, 0] = U_SOL_E[:, :, 0] = np.array((vr[:, 55, 0],  rho[:, 55, 0], Pr[:, 55, 0], vp[:, 55, 0]))
 
 for ii in range(len(new_r)-1):
-    U_SOL_MM[:, :, ii + 1] = modified_maccormack_pizzo_2d(U=U_SOL_MM[:, :, ii], dr=dr, dp=dp, r=new_r[ii].value, theta=np.pi/2,
+    U_SOL_MM[:, :, ii + 1] = modified_maccormack_pizzo_2d(U=U_SOL_MM[:, :, ii], dr=dr, dp=dp, r=new_r[ii].value,
+                                                          theta=np.pi/2,
                                                           epsilon=0.1)
     #U_SOL_M[:, :, ii + 1] = maccormack_pizzo_2d(U=U_SOL_M[:, :, ii], dr=dr, dp=dp, r=new_r[ii], theta=0)
     U_SOL_E[:, :, ii + 1] = forward_euler_pizzo_2d(U=U_SOL_E[:, :, ii], dr=dr, dp=dp, r=new_r[ii].value, theta=np.pi/2)
