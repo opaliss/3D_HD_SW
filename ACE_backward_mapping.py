@@ -1,5 +1,5 @@
 """Module that includes reading in ACE spacecraft data from https://cdaweb.gsfc.nasa.gov/misc/NotesA.html
-and back mapping the radial/longitude velocity, pressure and density to the inner heliosphere.
+and back maps the radial/longitude velocity, pressure and density to the inner heliosphere.
 
 
 Authors: Opal Issan
