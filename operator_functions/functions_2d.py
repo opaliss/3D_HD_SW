@@ -150,5 +150,5 @@ def HdUdp(dUdp, U, r, theta):
     H1 = coeff * (u * vr * dUdp[0] - (u / rho) * dUdp[2] - cs * dUdp[3])
     H2 = coeff * (-rho * u * dUdp[0] + alpha * (u / vr) * dUdp[1] + (u / vr) * dUdp[2] + rho * vr * dUdp[3])
     H3 = coeff * (-cs * rho * u * dUdp[0] + u * vr * dUdp[2] + cs * rho * vr * dUdp[3])
-    H4 = coeff * (alpha / (rho * vr) * dUdp[2] + alpha * (u / vr) * dUdp[3])
+    H4 = coeff * ((alpha / (rho * vr)) * dUdp[2] + (alpha * (u / vr)) * dUdp[3])
     return np.array([H1, H2, H3, H4])

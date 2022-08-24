@@ -7,7 +7,7 @@ Version: August 21, 2022
 """
 
 import numpy as np
-from tools.derivatives import ddx_fwd, ddx_bwd, d2dx2_central
+from tools.derivatives import ddx_fwd, ddx_bwd
 from operator_functions.functions_2d import HdUdp, G_vector
 import matplotlib.pyplot as plt
 
@@ -34,10 +34,10 @@ def forward_euler_pizzo_2d(U, dp, dr, r, theta):
         a 2D array of the flow quantities at (r + dr).
     """
     # derivative with respect to phi
-    dUdp = np.array([ddx_fwd(U[0], dp, periodic=True),
-                     ddx_fwd(U[1], dp, periodic=True),
-                     ddx_fwd(U[2], dp, periodic=True),
-                     ddx_fwd(U[3], dp, periodic=True)])
+    dUdp = np.array([ddx_fwd(f=U[0], dx=dp, periodic=True),
+                     ddx_fwd(f=U[1], dx=dp, periodic=True),
+                     ddx_fwd(f=U[2], dx=dp, periodic=True),
+                     ddx_fwd(f=U[3], dx=dp, periodic=True)])
     # H operator times dU/dp
     H = HdUdp(U=U, dUdp=dUdp, r=r, theta=theta)
     # gravitational forces vector
@@ -67,10 +67,10 @@ def backward_euler_pizzo_2d(U, dp, dr, r, theta):
         a 2D array of the flow quantities at (r + dr).
     """
     # derivative with respect to phi
-    dUdp = np.array([ddx_bwd(U[0], dp, periodic=True),
-                     ddx_bwd(U[1], dp, periodic=True),
-                     ddx_bwd(U[2], dp, periodic=True),
-                     ddx_bwd(U[3], dp, periodic=True)])
+    dUdp = np.array([ddx_bwd(f=U[0], dx=dp, periodic=True),
+                     ddx_bwd(f=U[1], dx=dp, periodic=True),
+                     ddx_bwd(f=U[2], dx=dp, periodic=True),
+                     ddx_bwd(f=U[3], dx=dp, periodic=True)])
     # H operator times dU/dp
     H = HdUdp(U=U, dUdp=dUdp, r=r, theta=theta)
     # gravitational forces vector

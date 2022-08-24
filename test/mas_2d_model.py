@@ -68,43 +68,43 @@ for ii in range(len(new_r)-1):
     #U_SOL_M[:, :, ii + 1] = maccormack_pizzo_2d(U=U_SOL_M[:, :, ii], dr=dr, dp=dp, r=new_r[ii], theta=0)
     U_SOL_E[:, :, ii + 1] = forward_euler_pizzo_2d(U=U_SOL_E[:, :, ii], dr=dr, dp=dp, r=new_r[ii].value, theta=np.pi/2)
 
-    # if ii % 50== 0:
-    #     fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(5, 10))
-    #     ax[0].plot(180 / np.pi * p, U_SOL_MM[0, :, ii + 1], c="r", label=r"MM, $\epsilon=0.1$")
-    #
-    #     ax[0].plot(180 / np.pi * p, U_SOL_M[0, :, ii + 1], c="b", label="M")
-    #     ax[0].plot(180 / np.pi * p, U_SOL_E[0, :, ii + 1], c="g", label="E")
-    #     ax[0].set_ylabel(r'$\frac{km}{s}$')
-    #     ax[0].legend()
-    #     ax[0].set_title(r"$v_{r}$")
-    #
-    #     ax[1].plot(180 / np.pi * p, ((U_SOL_MM[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="r")
-    #     ax[1].plot(180 / np.pi * p, ((U_SOL_M[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="b")
-    #     ax[1].plot(180 / np.pi * p, ((U_SOL_E[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="g")
-    #     ax[1].set_ylabel(r'$\frac{1}{cm^3}$')
-    #     ax[1].set_title(r"$n_{p}$")
-    #
-    #     pos = ax[2].plot(180 / np.pi * p,
-    #                      (U_SOL_MM[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="r")
-    #     pos = ax[2].plot(180 / np.pi * p,
-    #                      (U_SOL_M[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="b")
-    #     pos = ax[2].plot(180 / np.pi * p,
-    #                      (U_SOL_E[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="g")
-    #     ax[2].set_ylabel(r'$\frac{dyne}{cm^2}$')
-    #     ax[2].set_title(r"$P$")
-    #
-    #     pos = ax[3].plot(180 / np.pi * p, U_SOL_MM[3, :, ii + 1], c="r")
-    #     pos = ax[3].plot(180 / np.pi * p, U_SOL_M[3, :, ii + 1], c="b")
-    #     pos = ax[3].plot(180 / np.pi * p, U_SOL_E[3, :, ii + 1], c="g")
-    #     ax[3].set_ylabel(r'km/s')
-    #     ax[3].set_title(r"$v_{\phi}$")
-    #     ax[3].set_xticks([0, 90, 180, 270, 360])
-    #     ax[3].set_xlabel(" Carrington Longitude (Deg.)")
-    #     fig.suptitle("r = " + str(round(new_r[ii + 1].to(u.AU).value, 3)))
-    #     plt.tight_layout()
-    #
-    #     plt.show()
-    #     plt.close()
+    if ii % 50== 0:
+        fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(5, 10))
+        ax[0].plot(180 / np.pi * p, U_SOL_MM[0, :, ii + 1], c="r", label=r"MM, $\epsilon=0.1$")
+
+        ax[0].plot(180 / np.pi * p, U_SOL_M[0, :, ii + 1], c="b", label="M")
+        ax[0].plot(180 / np.pi * p, U_SOL_E[0, :, ii + 1], c="g", label="E")
+        ax[0].set_ylabel(r'$\frac{km}{s}$')
+        ax[0].legend()
+        ax[0].set_title(r"$v_{r}$")
+
+        ax[1].plot(180 / np.pi * p, ((U_SOL_MM[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="r")
+        ax[1].plot(180 / np.pi * p, ((U_SOL_M[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="b")
+        ax[1].plot(180 / np.pi * p, ((U_SOL_E[1, :, ii + 1] / m_p.value) * (1 / u.km ** 3)).to(1 / u.cm ** 3), c="g")
+        ax[1].set_ylabel(r'$\frac{1}{cm^3}$')
+        ax[1].set_title(r"$n_{p}$")
+
+        pos = ax[2].plot(180 / np.pi * p,
+                         (U_SOL_MM[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="r")
+        pos = ax[2].plot(180 / np.pi * p,
+                         (U_SOL_M[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="b")
+        pos = ax[2].plot(180 / np.pi * p,
+                         (U_SOL_E[2, :, ii + 1] * (u.kg / (u.s ** 2 * u.km))).to(u.dyne / (u.cm ** 2)), c="g")
+        ax[2].set_ylabel(r'$\frac{dyne}{cm^2}$')
+        ax[2].set_title(r"$P$")
+
+        pos = ax[3].plot(180 / np.pi * p, U_SOL_MM[3, :, ii + 1], c="r")
+        pos = ax[3].plot(180 / np.pi * p, U_SOL_M[3, :, ii + 1], c="b")
+        pos = ax[3].plot(180 / np.pi * p, U_SOL_E[3, :, ii + 1], c="g")
+        ax[3].set_ylabel(r'km/s')
+        ax[3].set_title(r"$v_{\phi}$")
+        ax[3].set_xticks([0, 90, 180, 270, 360])
+        ax[3].set_xlabel(" Carrington Longitude (Deg.)")
+        fig.suptitle("r = " + str(round(new_r[ii + 1].to(u.AU).value, 3)))
+        plt.tight_layout()
+
+        plt.show()
+        plt.close()
 
 
 sample_columns = np.arange(0, len(new_r), int(len(new_r) // 5))
