@@ -47,7 +47,7 @@ p = np.append(p, 2 * np.pi)
 vr = model["vr"].data * (u.km / u.s)
 vr = np.append(vr, [vr[0, :, :]], axis=0)
 # boost velocity from HUX paper.
-vr_ic = vr + 0.15 * vr * (1 - np.exp(-30/50))
+#vr_ic = vr + 0.15 * vr * (1 - np.exp(-30/50))
 
 vp = model["vp"].data * (u.km / u.s)
 vp = np.append(vp, [vp[0, :, :]], axis=0)
@@ -61,7 +61,7 @@ Pr = ((Pr * (u.dyne / u.cm ** 2)).to(u.kg / (u.s ** 2 * u.km)))  # convert to mk
 Pr = np.append(Pr, [Pr[0, :, :]], axis=0)
 
 U_SOL_E = np.zeros((4, len(p), len(new_r)))
-U_SOL_E[:, :, 0] = np.array((vr_ic[:, 55, 0], rho[:, 55, 0], Pr[:, 55, 0], vp[:, 55, 0]))
+U_SOL_E[:, :, 0] = np.array((vr[:, 55, 0], rho[:, 55, 0], Pr[:, 55, 0], vp[:, 55, 0]))
 
 for ii in range(len(new_r) - 1):
     U_SOL_E[:, :, ii + 1] = forward_euler_pizzo_2d(U=U_SOL_E[:, :, ii],

@@ -3,7 +3,7 @@ and back maps the radial/longitude velocity, pressure and density to the inner h
 
 
 Authors: Opal Issan
-Version: August 24, 2022
+Version: August 30, 2022
 
 """
 import matplotlib.pyplot as plt
@@ -39,27 +39,50 @@ starttime = dt.datetime(year=2021, month=1, day=22)
 endtime = dt.datetime(year=2021, month=2, day=18)
 
 # get ACE data
-ACE = ace.swe_h0(starttime, endtime)
+ACE = ace.swe_h2(starttime, endtime)
 
-# get position of ACE in Geocentric Solar Ecliptic (GSE) coordinate
+# get position of ACE position and measured velocity in Geocentric Solar Ecliptic (GSE) coordinates.
 # This system has its X axis towards the Sun and
-# its Z axis perpendicular to the plane of the Earth's orbit around the Sun (positive North). T
+# its Z axis perpendicular to the plane of the Earth's orbit around the Sun (positive North).
+# position (x, y, z)
 GSE_X_ACE = ACE.quantity('SC_pos_GSE_0')
 GSE_Y_ACE = ACE.quantity('SC_pos_GSE_1')
 GSE_Z_ACE = ACE.quantity('SC_pos_GSE_2')
+# velocity (vx, vy, vz)
+GSE_VX_ACE = ACE.quantity('V_GSE_0')
+GSE_VY_ACE = ACE.quantity('V_GSE_1')
+GSE_VZ_ACE = ACE.quantity('V_GSE_2')
 
-# Heliographic Carrington Coordinate system
-GSE_COORDS = SkyCoord(x=GSE_X_ACE, y=GSE_Y_ACE, z=GSE_Z_ACE, representation_type='cartesian',
+# define as a astropy skycoord object.
+GSE_COORDS = SkyCoord(x=GSE_X_ACE, y=GSE_Y_ACE, z=GSE_Z_ACE,
+                      v_x=GSE_VX_ACE, v_y=GSE_VY_ACE, v_z=GSE_VZ_ACE,
+                      representation_type='cartesian',
                       obstime=ACE.index, frame=frames.GeocentricSolarEcliptic)
+
+# convert to Heliographic Carrington Coordinate system.
+# The origin is the center of the Sun.
+# The Z-axis (+90 degrees latitude) is aligned with the Sun’s north pole.
+# The X-axis and Y-axis rotate with a period of 25.38 days.
+# position in spherical (lon, lat, r)
 HG_COORDS = GSE_COORDS.transform_to(frames.HeliographicCarrington(observer='sun'))
-ACE_longitude = HG_COORDS.lon / u.deg
-ACE_latitude = HG_COORDS.lat / u.deg
-ACE_r = HG_COORDS.radius.to(u.km) / u.km
+ACE_longitude = HG_COORDS.lon.to(u.deg).value
+ACE_latitude = HG_COORDS.lat.to(u.deg).value
+ACE_r = HG_COORDS.radius.to(u.km).value
+
+# velocity in cartesian (linear velocity km/s).
+# ACE_VX_HG = HG_COORDS.velocity.d_x.to(u.km/u.s).value
+# ACE_VY_HG = HG_COORDS.velocity.d_y.to(u.km/u.s).value
+# ACE_VZ_HG = HG_COORDS.velocity.d_z.to(u.km/u.s).value
+# velocity in spherical (linear velocity km/s).
+ACE_VR = HG_COORDS.d_radius.to(u.km / u.s).value  # km/s
+# THIS IS NOT CORRECT -- VELOCITY SHOULD BE MUCH SMALLER IN MAGNITUDE.
+ACE_VP = (HG_COORDS.d_lon.to(u.radian / u.s) * ACE_r).value  # km/s
 
 # interpolate data
-p_interp = np.linspace(0, 360, 250)  # in degrees.
-# bulk solar wind proton speed
-V_interp = interpolate_ace_data(x=p_interp, xp=ACE_longitude, fp=ACE.quantity('Vp'), period=360)
+p_interp = np.linspace(0, 360, 200)  # in degrees.
+# solar wind speed
+VR_interp = interpolate_ace_data(x=p_interp, xp=ACE_longitude, fp=ACE_VR, period=360)
+VP_interp = interpolate_ace_data(x=p_interp, xp=ACE_longitude, fp=ACE_VP, period=360)
 # proton number density
 N_interp = interpolate_ace_data(x=p_interp, xp=ACE_longitude, fp=ACE.quantity('Np'), period=360)
 # radial component of the proton temperature
@@ -70,18 +93,20 @@ N_interp = interpolate_ace_data(x=p_interp, xp=ACE_longitude, fp=ACE.quantity('N
 T_interp = interpolate_ace_data(x=p_interp, xp=ACE_longitude, fp=ACE.quantity('Tpr'), period=360)
 
 # convolve data (smoothing)
-kernel_size = 10
+kernel_size = 5
 kernel = np.ones(kernel_size) / kernel_size
-V_convolved = scipy.ndimage.convolve(V_interp, kernel, mode='wrap')
+VR_convolved = scipy.ndimage.convolve(VR_interp, kernel, mode='wrap')
+VP_convolved = scipy.ndimage.convolve(VP_interp, kernel, mode='wrap')
 N_convolved = scipy.ndimage.convolve(N_interp, kernel, mode='wrap')
 T_convolved = scipy.ndimage.convolve(T_interp, kernel, mode='wrap')
 
 # plot initial condition
-fig, ax = plt.subplots(nrows=3, sharex=True, figsize=(10, 18))
+fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(10, 18))
 
-ax[0].scatter(ACE_longitude, ACE.quantity('Vp'), s=10, color="g", label="data")
-ax[0].plot(p_interp, V_interp, color="k", label="linear-interp")
-ax[0].plot(p_interp, V_convolved, color="k", ls="--", label="smoothed")
+ax[0].scatter(ACE_longitude, ACE.quantity('Vp'), s=10, label="bulk velocity")
+ax[0].scatter(ACE_longitude, ACE_VR, s=10, color="g", label="data")
+ax[0].plot(p_interp, VR_interp, color="k", label="linear-interp")
+ax[0].plot(p_interp, VR_convolved, color="k", ls="--", label="smoothed")
 ax[0].legend()
 
 ax[1].scatter(ACE_longitude, ACE.quantity('Np'), s=2, color="r")
@@ -92,12 +117,17 @@ ax[2].scatter(ACE_longitude, ACE.quantity('Tpr'), s=2, color="orange")
 ax[2].plot(p_interp, T_interp, color="k")
 ax[2].plot(p_interp, T_convolved, color="k", ls="--")
 
-ax[0].set_ylabel(r'bulk flow speed (km/s)')
+ax[3].scatter(ACE_longitude, ACE_VP, s=2)
+ax[3].plot(p_interp, VP_interp, color="k")
+ax[3].plot(p_interp, VP_convolved, color="k", ls="--")
+
+ax[0].set_ylabel(r'radial flow speed (km/s)')
 ax[1].set_ylabel(r"proton density (1/cm$^3$)")
 ax[2].set_ylabel(r"proton temperature (K)")
+ax[3].set_ylabel(r"longitudinal flow speed (km/s)")
 ax[2].set_yscale("log")
-ax[2].set_xlabel("Carrington Longitude (Deg.)")
-ax[2].set_xticks([0, 90, 180, 270, 360])
+ax[3].set_xlabel("Carrington Longitude (Deg.)")
+ax[3].set_xticks([0, 90, 180, 270, 360])
 ax[2].set_xlim(0, 360)
 ax[0].set_title("ACE in-situ observations")
 fig.autofmt_xdate()
@@ -110,7 +140,7 @@ N_convolved_ = (N_convolved * m_p / u.cm ** 3).to(u.kg / (u.km ** 3))
 # needs further investigation since temp = T_pr which I am not sure what that means physically -
 # might use a different law instead of ideal gas.
 # coefficient is unclear -- needs testing.
-P_convolved_ = 1/3 * (N_convolved / u.cm ** 3 * k_B * T_convolved * u.K).to(u.kg / ((u.s ** 2) * u.km))
+P_convolved_ = 1 / 3 * (N_convolved / u.cm ** 3 * k_B * T_convolved * u.K).to(u.kg / ((u.s ** 2) * u.km))
 # P_convolved_ = scipy.ndimage.convolve(P_convolved_, kernel, mode='wrap')
 
 # Here, we assume that vr = bulk velocity and vp = 0, since vr >> vp.
@@ -118,10 +148,10 @@ P_convolved_ = 1/3 * (N_convolved / u.cm ** 3 * k_B * T_convolved * u.K).to(u.kg
 # Can we convert the velocity meassured in GSE to HG?
 U_SOL = np.zeros((4, len(p_interp), int(1e4)))
 U_SOL[:, :, 0] = np.array([
-    V_convolved,
+    VR_convolved,
     N_convolved_,
     P_convolved_,
-    0 * V_convolved
+    0 * VP_convolved
 ])
 
 # set theta slice and r0.
@@ -134,10 +164,10 @@ start_time = time.time()
 
 for ii in range(len(r_vec) - 1):
     # CFL condition for adaptive radial stepping
-    dr = 0.9 * max_dr_2d(U=U_SOL[:, :, ii],
-                         r=r_vec[ii],
-                         dp=(p_interp[1] - p_interp[0]) * (np.pi / 180),
-                         theta=theta_avg)
+    dr = 0.85 * max_dr_2d(U=U_SOL[:, :, ii],
+                          r=r_vec[ii],
+                          dp=(p_interp[1] - p_interp[0]) * (np.pi / 180),
+                          theta=theta_avg)
 
     # update r_vec
     r_vec[ii + 1] = r_vec[ii] - dr
@@ -192,7 +222,7 @@ U_SOL = U_SOL[:, :, :ii]
 r_vec = r_vec[:ii]
 
 # plot the solution at different radial locations
-sample_columns = np.arange(0, len(r_vec), int(len(r_vec) // 5))
+sample_columns = np.arange(0, len(r_vec), int(len(r_vec) // 7))
 # sample_columns = np.append(sample_columns, len(r_vec) - 1)
 fig, ax = plt.subplots(4, 1, figsize=(10, 15), sharex=True)
 
@@ -240,7 +270,7 @@ for ii in range(len(r_vec) - 1):
                                                    theta=theta_avg)
 
 # plot the solution at different radial locations
-sample_columns = np.arange(0, len(r_vec), int(len(r_vec) // 5))
+sample_columns = np.arange(0, len(r_vec), int(len(r_vec) // 7))
 # sample_columns = np.append(sample_columns, len(r_vec) - 1)
 fig, ax = plt.subplots(4, 1, figsize=(10, 15), sharex=True)
 
