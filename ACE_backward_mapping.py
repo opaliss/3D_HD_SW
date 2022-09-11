@@ -3,7 +3,7 @@ and back maps the radial/longitude velocity, pressure and density to the inner h
 
 
 Authors: Opal Issan
-Version: August 30, 2022
+Version: Sept 11th, 2022
 
 """
 import matplotlib.pyplot as plt
@@ -54,6 +54,7 @@ GSE_VY_ACE = ACE.quantity('V_GSE_1')
 GSE_VZ_ACE = ACE.quantity('V_GSE_2')
 
 # define as a astropy skycoord object.
+# https://docs.astropy.org/en/stable/coordinates/velocities.html
 GSE_COORDS = SkyCoord(x=GSE_X_ACE, y=GSE_Y_ACE, z=GSE_Z_ACE,
                       v_x=GSE_VX_ACE, v_y=GSE_VY_ACE, v_z=GSE_VZ_ACE,
                       representation_type='cartesian',
@@ -76,6 +77,7 @@ ACE_r = HG_COORDS.radius.to(u.km).value
 # velocity in spherical (linear velocity km/s).
 ACE_VR = HG_COORDS.d_radius.to(u.km / u.s).value  # km/s
 # THIS IS NOT CORRECT -- VELOCITY SHOULD BE MUCH SMALLER IN MAGNITUDE.
+# meaasured in arcsec/ second
 ACE_VP = (HG_COORDS.d_lon.to(u.radian / u.s) * ACE_r).value  # km/s
 
 # interpolate data
